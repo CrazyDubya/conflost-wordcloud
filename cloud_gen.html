@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2" defer></script>
+</head>
+
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-r from-blue-500 to-teal-400 shadow-lg">
+        <div class="container mx-auto p-5">
+            <div class="flex justify-between items-center">
+                <a href="/" class="text-white text-2xl font-bold">Temp188</a>
+                <div>
+                    <a href="#" class="text-white text-lg ml-4">Home</a>
+                    <a href="#" class="text-white text-lg ml-4">Word Cloud</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="container mx-auto p-8">
+            <h1 class="text-4xl font-bold text-gray-800 text-center">Generate Your Custom Word Cloud</h1>
+            <p class="text-lg text-gray-600 text-center mt-4">Upload your text file, customize the word cloud, and visualize the most important words.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-8" x-data="{ excludeWords: '', includeWords: '' }">
+
+        <!-- Upload Section -->
+        <section class="bg-white p-8 rounded-lg shadow-lg mt-8">
+            <h2 class="text-2xl font-bold text-gray-800">Step 1: Upload Your Text File</h2>
+            <form action="/generate-wordcloud" method="POST" enctype="multipart/form-data" class="mt-4">
+                <label class="block text-gray-700 text-lg">Choose a text file (.txt):</label>
+                <input type="file" name="file" accept=".txt" class="mt-2 p-2 border border-gray-300 rounded-lg w-full" required>
+
+                <!-- Exclude Words -->
+                <label class="block text-gray-700 text-lg mt-6">Step 2: Exclude Words (optional)</label>
+                <input type="text" x-model="excludeWords" name="exclude_words" placeholder="Enter words to exclude, separated by commas" class="mt-2 p-2 border border-gray-300 rounded-lg w-full">
+
+                <!-- Include Words -->
+                <label class="block text-gray-700 text-lg mt-6">Step 3: Include Words (optional)</label>
+                <input type="text" x-model="includeWords" name="include_words" placeholder="Enter words to include, separated by commas" class="mt-2 p-2 border border-gray-300 rounded-lg w-full">
+
+                <!-- Submit Button -->
+                <button type="submit" class="mt-6 bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-600">Generate Word Clouds</button>
+            </form>
+        </section>
+
+        <!-- Preview Section -->
+        <section class="bg-white p-8 rounded-lg shadow-lg mt-8" x-show="excludeWords || includeWords">
+            <h2 class="text-2xl font-bold text-gray-800">Preview Your Choices</h2>
+            <p class="text-gray-600 mt-4"><strong>Excluded Words:</strong> <span x-text="excludeWords || 'None'"></span></p>
+            <p class="text-gray-600 mt-2"><strong>Included Words:</strong> <span x-text="includeWords || 'None'"></span></p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-6 mt-8">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 Temp188. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=temp188.com MCP WordCloud Generator
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/temp188.com
+ExecStart=/usr/bin/python3 /var/temp188.com/mcp_wordcloud.py
+Restart=always
+RestartSec=10
+Environment="PATH=/usr/bin:/usr/local/bin"
+
+[Install]
+WantedBy=multi-user.target
