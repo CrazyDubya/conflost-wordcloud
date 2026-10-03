@@ -5,5 +5,5 @@ python-jose==3.4.0
 passlib==1.7.4
 python-multipart==0.0.31
 stripe==6.7.0
-pyjwt==2.13.0
+pyjwt==2.15.0
 bcrypt==4.0.1
