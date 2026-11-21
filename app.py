@@ -389,7 +389,7 @@ def generate_wordclouds():
             return jsonify({'error': 'After filtering, no significant words remain. Try reducing filters or adding more text.'}), 400
         
         # Calculate word frequencies
-        word_frequencies = get_word_frequencies(text, min_word_length)
+        word_frequencies = get_word_frequencies(processed_text, min_word_length)
         
         # Generate top words chart
         top_words_chart = generate_top_words_chart(word_frequencies, session_id)
