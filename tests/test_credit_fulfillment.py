@@ -1,7 +1,8 @@
 """Credits for one paid Stripe checkout session must be granted once, to the buyer only.
 
-The Flask app, database and credit logic are real (in-memory SQLite). Only the two
-Stripe network calls are replaced by a local fake of a paid checkout session.
+The Flask app, database and credit logic are real (a throwaway SQLite file in a temp
+directory, never the app's own database). Only the Stripe network calls are replaced
+by a local fake of a paid checkout session.
 """
 import os
 import sys
@@ -11,6 +12,15 @@ from pathlib import Path
 
 os.environ.setdefault('MPLCONFIGDIR', '/tmp/mpl-test')
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import tempfile  # noqa: E402
+
+import config  # noqa: E402
+
+# The app reads its database URI once, at import time. Point it at a temp file first
+# so the test can never touch (or drop tables in) a real database.
+_TMP = tempfile.TemporaryDirectory()
+config.SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(_TMP.name, 'test.db')
 
 import stripe  # noqa: E402
 import app_enhanced  # noqa: E402
@@ -26,11 +36,11 @@ def paid_session(user_id, credits=30, session_id='cs_test_1'):
 class CreditFulfillment(unittest.TestCase):
     def setUp(self):
         app = app_enhanced.app
-        app.config.update(TESTING=True, SQLALCHEMY_DATABASE_URI='sqlite://')
+        app.config.update(TESTING=True)
         self.app = app
         self.ctx = app.app_context()
         self.ctx.push()
-        db.engine.dispose()
+        self.assertIn(_TMP.name, str(db.engine.url))
         db.drop_all()
         db.create_all()
         for name in ('alice', 'mallory'):
