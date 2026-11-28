@@ -144,17 +144,11 @@ def webhook():
 
 def fulfill_order(session):
     """Process a successful payment"""
-    from credits import add_credits
-    
-    # Get customer details from session
-    user_id = session.metadata.get('user_id')
-    credits = int(session.metadata.get('credits', 0))
-    package_name = session.metadata.get('package_name', 'Credit Package')
-    
-    if user_id and credits > 0:
-        # Add credits to user account
-        add_credits(int(user_id), credits, f"Purchase: {package_name}")
-        print(f"Added {credits} credits to user {user_id}")
+    from credits import fulfill_checkout_session
+
+    granted = fulfill_checkout_session(session)
+    if granted:
+        print(f"Added {granted} credits for checkout session {session.id}")
 
 # This is a basic implementation - we'll need to add the wordcloud generation logic
 @app.route('/mcp/wordcloud', methods=['GET'])

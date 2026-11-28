@@ -14,6 +14,35 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 credits_bp = Blueprint('credits', __name__)
 
+
+def fulfill_checkout_session(checkout_session, expected_user_id=None):
+    """Grant the credits for one paid checkout session, at most once.
+
+    The Stripe session id is stored in the transaction description, so a reloaded
+    success URL, or the success URL followed by the webhook, cannot grant twice.
+    When expected_user_id is given, the session must belong to that user.
+    Returns the credits granted (0 if nothing was granted).
+    """
+    if checkout_session.payment_status != 'paid':
+        return 0
+    metadata = checkout_session.metadata
+    user_id = metadata.get('user_id')
+    credits = int(metadata.get('credits', 0))
+    if not user_id or credits <= 0:
+        return 0
+    if expected_user_id is not None and str(user_id) != str(expected_user_id):
+        return 0
+    marker = f"[{checkout_session.id}]"
+    already = CreditTransaction.query.filter(
+        CreditTransaction.user_id == int(user_id),
+        CreditTransaction.description.like(f"%{marker}")
+    ).first()
+    if already:
+        return 0
+    package_name = metadata.get('package_name', 'Credit Package')
+    add_credits(int(user_id), credits, f"Purchase: {package_name} {marker}")
+    return credits
+
 @credits_bp.route('/mcp/dashboard')
 @login_required
 def dashboard():
@@ -89,14 +118,11 @@ def payment_success():
         
         # If using webhook, this is redundant, but provides immediate feedback
         if checkout_session.payment_status == 'paid':
-            # Get metadata
-            credits = int(checkout_session.metadata.get('credits', 0))
-            package_name = checkout_session.metadata.get('package_name', 'Credit Package')
-            
-            # Add credits to user account
-            add_credits(current_user.id, credits, f"Purchase: {package_name}")
-            
-            flash(f'Payment successful! {credits} credits have been added to your account.', 'success')
+            granted = fulfill_checkout_session(checkout_session, expected_user_id=current_user.id)
+            if granted:
+                flash(f'Payment successful! {granted} credits have been added to your account.', 'success')
+            else:
+                flash('This payment has already been applied, or does not belong to your account.', 'info')
         else:
             flash('Payment is being processed. Credits will be added once payment is confirmed.', 'info')
             
